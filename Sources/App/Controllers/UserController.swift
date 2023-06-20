@@ -42,6 +42,12 @@ struct UserController: RouteCollection {
         guard let user = try await User.find(username, on: req.db) else {
             throw Abort(.notFound)
         }
+        try await SendEvent.query(on: req.db)
+            .group(.or) { $0
+                .filter(\.$from.$id == username)
+                .filter(\.$to.$id == username)
+            }
+            .delete()
         try await user.delete(on: req.db)
         return .ok
     }
