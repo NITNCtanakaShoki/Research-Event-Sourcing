@@ -17,13 +17,7 @@ struct UserController: RouteCollection {
         guard let _ = try await User.find(username, on: req.db) else {
             throw Abort(.notFound)
         }
-        let events = try await SendEvent.query(on: req.db)
-            .group(.or) { q in
-                q.filter(\.$from.$id == username)
-                q.filter(\.$to.$id == username)
-            }
-            .all()
-        return events.point(of: username)
+        return try await SendEvent.point(of: username, on: req.db)
     }
     
     func create(req: Request) async throws -> HTTPStatus {
