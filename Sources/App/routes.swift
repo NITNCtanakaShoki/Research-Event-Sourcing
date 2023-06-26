@@ -12,4 +12,5 @@ func routes(_ app: Application) throws {
 
     try app.register(collection: UserController())
     try app.register(collection: SendController())
+    try app.register(collection: ResetController())
 }

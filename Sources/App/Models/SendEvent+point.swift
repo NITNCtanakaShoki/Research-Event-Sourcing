@@ -1,25 +1,28 @@
+import Vapor
 import Fluent
 
 extension SendEvent {
     static func point(of username: String, on db: Database) async throws -> Int {
-        var point: Int = 0
+        var pointResult: Result<Int, Error> = .success(0)
         try await query(on: db)
             .group(.or) { $0
                 .filter(\.$from.$id == username)
                 .filter(\.$to.$id == username)
             }
             .sort(\.$createdAt)
-            .chunk(max: 1024) { results in
-                _ = results.map { result in
-                    result.map { e in
-                        if e.$to.id == username {
-                            point += e.point
-                        } else {
-                            point -= e.point
+            .chunk(max: 64) { results in
+                pointResult = results.reduce(pointResult) { (pointResult, eventResult) in
+                    pointResult.flatMap { point in
+                        eventResult.map { event in
+                            if event.$to.id == username {
+                                return point + event.point
+                            } else {
+                                return point - event.point
+                            }
                         }
                     }
                 }
             }
-        return point
+        return try pointResult.get()
     }
 }
