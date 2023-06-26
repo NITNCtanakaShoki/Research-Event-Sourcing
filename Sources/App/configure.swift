@@ -19,6 +19,7 @@ public func configure(_ app: Application) async throws {
 
     app.migrations.add(User.Migration())
     app.migrations.add(SendEvent.Migration())
+    app.migrations.add(SendEvent.IndexMigration())
 
     // register routes
     try routes(app)
